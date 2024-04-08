@@ -1,10 +1,11 @@
 # frozen_string_literal: true
 
 module LabCoat
+  # A wrapper around some behavior that captures the resulting `value` and any exceptions thrown.
   class Observation
-    attr_reader :name, :experiment, :duration_seconds, :value, :error, :publishable_value
+    attr_reader :name, :experiment, :duration, :value, :error
 
-    def initialize(name, experiment, &block)
+    def initialize(name, experiment, &block) # rubocop:disable Metrics/MethodLength
       @name = name
       @experiment = experiment
 
@@ -14,7 +15,7 @@ module LabCoat
       rescue StandardError => e
         @error = e
       ensure
-        @duration_seconds = Process.clock_gettime(Process::CLOCK_MONOTONIC, :float_second) - start_at
+        @duration = Process.clock_gettime(Process::CLOCK_MONOTONIC, :float_second) - start_at
       end
 
       freeze
