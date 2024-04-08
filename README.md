@@ -1,8 +1,11 @@
-# LabCoat
+# LabCoat 🥼
 
 A simple experiment library to safely test new code paths.
 
-This library is heavily inspired by [Scientist](https://github.com/github/scientist).
+This library is heavily inspired by [Scientist](https://github.com/github/scientist), with some key differences:
+- `Experiments` are `classes`, not `modules` which means they are stateful by default.
+- There is no app wide default experiment that gets magically set.
+- The `Result` only support one comparison at a time, i.e. only 1 `candidate` is allowed.
 
 ## Installation
 
