@@ -7,7 +7,7 @@ A simple experiment library to safely test new code paths.
 This library is heavily inspired by [Scientist](https://github.com/github/scientist), with some key differences:
 - `Experiments` are `classes`, not `modules` which means they are stateful by default.
 - There is no app wide default experiment that gets magically set.
-- The `Result` only supports one comparison at a time, i.e. only 1 `candidate` is allowed.
+- The `Result` only supports one comparison at a time, i.e. only 1 `candidate` is allowed per run.
 
 ## Installation
 
@@ -44,15 +44,7 @@ See the [`Experiment`](lib/lab_coat/experiment.rb) class for more details.
 |`ignore?`|Whether or not the result should be ignored. Ignored `Results` are still passed to `#publish!`|
 |`raised`|Callback method that's called when an `Observation` raises.|
 
-Consider creating a shared base class(es) to create consistency across experiments within your app.
-
-```ruby
-# application_experiment.rb
-class ApplicationExperiment < LabCoat::Experiment
-end
-```
-
-You may want to give your experiment some context, or state. You can do this via an initializer or writer methods just like any other Ruby class.
+You should create a shared base class(es) to maintain consistency across experiments within your app. You may want to give your experiment some context, or state. You can do this via an initializer or writer methods just like any other Ruby class.
 
 ```ruby
 # application_experiment.rb
