@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 module LabCoat
+  # A base experiment class meant to be subclassed to define various experiments.
   class Experiment
     attr_reader :name
 
@@ -14,12 +15,13 @@ module LabCoat
       raise MustOverrideError, "`#enabled?` must be implemented in your Experiment class."
     end
 
-    # Override this method to define the existing aka "control" behavior.
+    # Override this method to define the existing aka "control" behavior. This method is always run, even when
+    # `enabled?` is false.
     def control(...)
       raise MustOverrideError, "`#control` must be implemented in your Experiment class."
     end
 
-    # Override this method to define the new aka "candidate" behavior.
+    # Override this method to define the new aka "candidate" behavior. Only run if the experiment is enabled.
     # @param context [Hash] Any data needed for the candidate to run that has to be passed into `#run`.
     def candidate(...)
       raise MustOverrideError, "`#candidate` must be implemented in your Experiment class."
@@ -34,7 +36,7 @@ module LabCoat
     end
 
     # Override this method to define which results are ignored. Must return a boolean.
-    def ignore?(control, candidate)
+    def ignore?(_control, _candidate)
       false
     end
 
@@ -45,8 +47,8 @@ module LabCoat
     # Override this method to transform the value for publishing. This could mean turning the value into something
     # serializable (e.g. JSON).
     # @param observation [LabCoat::Observation]
-    def publishable_value(observation)
-      value
+    def publishable_value(_observation)
+      observation.value
     end
 
     # Override this method to publish the `Result`. It's recommended to override this once in an application wide base
@@ -56,7 +58,7 @@ module LabCoat
 
     # Runs the control and candidate and publishes the result. Always returns the result of `control`.
     # @param context [Hash] Any data needed at runtime.
-    def run!(...)
+    def run!(...) # rubocop:disable Metrics/MethodLength
       # Run the control and exit early if the experiment is not enabled.
       control = Observation.new("control", self) do
         control(...)
