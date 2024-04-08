@@ -23,9 +23,9 @@ If bundler is not being used to manage dependencies, install the gem by executin
 
 <!-- TODO -->
 
-### Make some `Observations`
+### Make some `Observations` via `run!`
 
-You don't have to create an `Observation` yourself; that happens automatically when you call `Experiment#run!`. But `Observation` instances are passed to many of the `Experiment` methods that you may override.
+You don't have to create an `Observation` yourself; that happens automatically when you call `Experiment#run!`.
 
 |Attribute|Description|
 |---|---|
@@ -36,6 +36,40 @@ You don't have to create an `Observation` yourself; that happens automatically w
 |`publishable_value`|A publishable representation of the `value`, as defined by `Experiment#publishable_value`.|
 |`raised?`|Whether or not the code path raised.|
 |`error`|If the code path raised, the thrown exception is stored here.|
+
+`Observation` instances are passed to many of the `Experiment` methods that you may override.
+
+```ruby
+# your_experiment.rb
+def compare(control, candidate)
+  return false if control.raised? || candidate.raised?
+
+  control.value.some_method == candidate.value.some_method
+end
+
+def ignore?(control, candidate)
+  return true if control.raised? || candidate.raised?
+  return true if candidate.value.some_guard?
+end
+
+def publishable_value(observation)
+  if observation.raised?
+    {
+      error_class: observation.error.class.name,
+      error_message: observation.error.message
+    }
+  else
+    {
+      type: observation.name,
+      value: observation.publishable_value,
+      duration: observation.duration
+    }
+  end
+end
+
+# Elsewhere...
+experiment.run!
+```
 
 ### Publish the `Result`
 
