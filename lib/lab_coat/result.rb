@@ -2,19 +2,24 @@
 
 module LabCoat
   class Result
-    attr_reader :experiment, :control, :candidate, :matched
+    attr_reader :experiment, :control, :candidate
 
-    def initialize(experiment, control, candidate, matched)
+    def initialize(experiment, control, candidate)
       @experiment = experiment
       @control = control
       @candidate = candidate
-      @matched = matched
+      @matched = experiment.compare(control, candidate)
+      @ignored = experiment.ignore?(control, candidate)
 
       freeze
     end
 
     def matched?
       @matched
+    end
+
+    def ignored?
+      @ignored
     end
   end
 end

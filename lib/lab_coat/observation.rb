@@ -16,6 +16,8 @@ module LabCoat
       ensure
         @duration_seconds = Process.clock_gettime(Process::CLOCK_MONOTONIC, :float_second) - start_at
       end
+
+      freeze
     end
 
     # @return [Object] A publishable representation of this observation's `value`. Typically something that is

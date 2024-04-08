@@ -26,11 +26,16 @@ module LabCoat
     end
 
     # Override this method to define what is considered a match or mismatch. Must return a boolean.
-    # @param control_value [Object] The return value of the `control` method.
-    # @param candidate_value [Object] The return value of the `candidate` method.
+    # @param control [LabCoat::Observation] The control `Observation`.
+    # @param candidate [LabCoat::Observation] The candidate `Observation`.
     # @return [TrueClass, FalseClass]
-    def compare(control_value, candidate_value)
-      control_value == candidate_value
+    def compare(control, candidate)
+      control.value == candidate.value
+    end
+
+    # Override this method to define which results are ignored. Must return a boolean.
+    def ignore?(control, candidate)
+      false
     end
 
     # Called when the control and/or candidate observations raise an error.
@@ -39,7 +44,8 @@ module LabCoat
 
     # Override this method to transform the value for publishing. This could mean turning the value into something
     # serializable (e.g. JSON).
-    def publishable_value(value)
+    # @param observation [LabCoat::Observation]
+    def publishable_value(observation)
       value
     end
 
@@ -64,8 +70,7 @@ module LabCoat
       raised(candidate) if candidate.raised?
 
       # Compare and publish the results.
-      matched = compare(control.value, candidate.value)
-      result = Result.new(self, control, candidate, matched)
+      result = Result.new(self, control, candidate)
       publish!(result)
 
       # Always return the control.
