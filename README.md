@@ -21,9 +21,21 @@ If bundler is not being used to manage dependencies, install the gem by executin
 
 ### Create an `Experiment`
 
+<!-- TODO -->
+
 ### Make some `Observations`
 
-You don't have to create an `Observation` yourself; that happens automatically when you call `Experiment#run!`.
+You don't have to create an `Observation` yourself; that happens automatically when you call `Experiment#run!`. But `Observation` instances are passed to many of the `Experiment` methods that you may override.
+
+|Attribute|Description|
+|---|---|
+|`name`|Either `"control"` or `"candidate"`.|
+|`experiment`|The `Experiment` instance this `Result` is for.|
+|`duration`|The duration of the run in `float` seconds.|
+|`value`|The return value of the observed code path.|
+|`publishable_value`|A publishable representation of the `value`, as defined by `Experiment#publishable_value`.|
+|`raised?`|Whether or not the code path raised.|
+|`error`|If the code path raised, the thrown exception is stored here.|
 
 ### Publish the `Result`
 

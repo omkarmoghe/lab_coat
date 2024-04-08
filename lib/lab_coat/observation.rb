@@ -27,15 +27,5 @@ module LabCoat
     def raised?
       !error.nil?
     end
-
-    # @return [TrueClass, FalseClass]
-    def control?
-      name == "control"
-    end
-
-    # @return [TrueClass, FalseClass]
-    def candidate?
-      !control?
-    end
   end
 end
