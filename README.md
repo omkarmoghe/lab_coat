@@ -89,7 +89,7 @@ end
 
 ### Make some `Observations` via `run!`
 
-You don't have to create an `Observation` yourself; that happens automatically when you call `Experiment#run!`.
+You don't have to create an `Observation` yourself; that happens automatically when you call `Experiment#run!`. The control and candidate `Observations` are packaged into a `Result` [passed to `Experiment#publish!`](#publish-the-result).
 
 |Attribute|Description|
 |---|---|
