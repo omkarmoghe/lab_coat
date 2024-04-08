@@ -12,19 +12,19 @@ module LabCoat
     # Override this method to control whether or not the experiment runs.
     # @return [TrueClass, FalseClass]
     def enabled?(...)
-      raise MustOverrideError, "`#enabled?` must be implemented in your Experiment class."
+      raise InvalidExperimentError, "`#enabled?` must be implemented in your Experiment class."
     end
 
     # Override this method to define the existing aka "control" behavior. This method is always run, even when
     # `enabled?` is false.
     def control(...)
-      raise MustOverrideError, "`#control` must be implemented in your Experiment class."
+      raise InvalidExperimentError, "`#control` must be implemented in your Experiment class."
     end
 
     # Override this method to define the new aka "candidate" behavior. Only run if the experiment is enabled.
     # @param context [Hash] Any data needed for the candidate to run that has to be passed into `#run`.
     def candidate(...)
-      raise MustOverrideError, "`#candidate` must be implemented in your Experiment class."
+      raise InvalidExperimentError, "`#candidate` must be implemented in your Experiment class."
     end
 
     # Override this method to define what is considered a match or mismatch. Must return a boolean.
@@ -47,7 +47,7 @@ module LabCoat
     # Override this method to transform the value for publishing. This could mean turning the value into something
     # serializable (e.g. JSON).
     # @param observation [LabCoat::Observation]
-    def publishable_value(_observation)
+    def publishable_value(observation)
       observation.value
     end
 

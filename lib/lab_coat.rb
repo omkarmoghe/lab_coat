@@ -7,5 +7,5 @@ require_relative "lab_coat/experiment"
 
 module LabCoat
   Error = Class.new(StandardError)
-  MustOverrideError = Class.new(Error)
+  InvalidExperimentError = Class.new(Error)
 end
