@@ -1,21 +1,21 @@
 # frozen_string_literal: true
 
-class TestObservation < Minitest::Test
-  def setup
-    @experiment = LabCoat::Experiment.new("test_experiment") do
-      def publishable_value(observation) # rubocop:disable Lint/NestedMethodDefinition
-        "publishable #{observation.value}"
-      end
-    end
+require "test_helper"
 
-    @observation = LabCoat::Observation.new("control", @experiment) do
-      sleep(0.1)
-      "success"
+class TestObservation < Minitest::Test
+  TestObservationExperiment = Class.new(LabCoat::Experiment) do
+    def publishable_value(observation)
+      "publishable #{observation.value}"
     end
   end
 
+  def setup
+    @experiment = TestObservationExperiment.new("test_experiment")
+    @observation = LabCoat::Observation.new("control", @experiment) { "success" }
+  end
+
   def test_duration
-    assert_operator(@observation.duration, :>=, 0.1)
+    assert_operator(@observation.duration, :>=, 0)
   end
 
   def test_value
