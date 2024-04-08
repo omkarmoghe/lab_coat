@@ -31,9 +31,9 @@ See the [`Experiment`](lib/lab_coat/experiment.rb) class for more details.
 
 |Method|Description|
 |---|---|
-|`enabled?`|Returns a `Boolean` that controls whether or not the experiment runs.|
-|`control`|The existing or default behavior. This will always be returned from `#run!`.|
 |`candidate`|The new behavior you want to test.|
+|`control`|The existing or default behavior. This will always be returned from `#run!`.|
+|`enabled?`|Returns a `Boolean` that controls whether or not the experiment runs.|
 |`publish!`|This is not _technically_ required, but `Experiments` are not useful unless you can analyze the results. Override this method to record the `Result` however you wish.|
 
 #### Additional methods
@@ -93,13 +93,14 @@ You don't have to create an `Observation` yourself; that happens automatically w
 
 |Attribute|Description|
 |---|---|
-|`name`|Either `"control"` or `"candidate"`.|
-|`experiment`|The `Experiment` instance this `Result` is for.|
 |`duration`|The duration of the run in `float` seconds.|
-|`value`|The return value of the observed code path.|
+|`error`|If the code path raised, the thrown exception is stored here.|
+|`experiment`|The `Experiment` instance this `Result` is for.|
+|`name`|Either `"control"` or `"candidate"`.|
 |`publishable_value`|A publishable representation of the `value`, as defined by `Experiment#publishable_value`.|
 |`raised?`|Whether or not the code path raised.|
-|`error`|If the code path raised, the thrown exception is stored here.|
+|`slug`|A combination of the `Experiment#name` and `Observation#name`, e.g. `"experiment_name.control"`|
+|`value`|The return value of the observed code path.|
 
 `Observation` instances are passed to many of the `Experiment` methods that you may override.
 
@@ -143,11 +144,11 @@ A `Result` represents a single run of an `Experiment`.
 
 |Attribute|Description|
 |---|---|
-|`experiment`|The `Experiment` instance this `Result` is for.|
-|`control`|An `Observation` instance representing the `Experiment#control` behavior|
 |`candidate`|An `Observation` instance representing the `Experiment#candidate` behavior|
-|`matched?`|Whether or not the `control` and `candidate` match, as defined by `Experiment#compare`|
+|`control`|An `Observation` instance representing the `Experiment#control` behavior|
+|`experiment`|The `Experiment` instance this `Result` is for.|
 |`ignored?`|Whether or not the result should be ignored, as defined by `Experiment#ignore?`|
+|`matched?`|Whether or not the `control` and `candidate` match, as defined by `Experiment#compare`|
 
 The `Result` is passed to your implementation of `#publish!` when an `Experiment` is finished running.
 
