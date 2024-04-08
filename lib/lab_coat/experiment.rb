@@ -17,12 +17,13 @@ module LabCoat
 
     # Override this method to define the existing aka "control" behavior. This method is always run, even when
     # `enabled?` is false.
+    # @return [Object] Anything.
     def control(...)
       raise InvalidExperimentError, "`#control` must be implemented in your Experiment class."
     end
 
     # Override this method to define the new aka "candidate" behavior. Only run if the experiment is enabled.
-    # @param context [Hash] Any data needed for the candidate to run that has to be passed into `#run`.
+    # @return [Object] Anything.
     def candidate(...)
       raise InvalidExperimentError, "`#candidate` must be implemented in your Experiment class."
     end
