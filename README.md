@@ -1,5 +1,7 @@
 # LabCoat 🥼
 
+![Gem Version](https://img.shields.io/gem/v/lab_coat) ![Gem Total Downloads](https://img.shields.io/gem/dt/lab_coat)
+
 A simple experiment library to safely test new code paths.
 
 This library is heavily inspired by [Scientist](https://github.com/github/scientist), with some key differences:
