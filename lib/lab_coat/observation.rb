@@ -27,5 +27,10 @@ module LabCoat
     def raised?
       !error.nil?
     end
+
+    # @return [String] String representing this Observation.
+    def slug
+      "#{experiment.name}.#{name}"
+    end
   end
 end

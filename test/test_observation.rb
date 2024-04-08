@@ -35,4 +35,8 @@ class TestObservation < Minitest::Test
     assert(observation.raised?)
     assert_kind_of(StandardError, observation.error)
   end
+
+  def test_slug
+    assert_equal("test_experiment.control", @observation.slug)
+  end
 end
