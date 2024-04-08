@@ -181,21 +181,38 @@ def publish!(result)
   if result.matched?
     puts "😎"
   else
+    control = result.control
+    candidate = result.candidate
     puts <<~MISMATCH
       😮
 
-      [Control]
-      Value: #{result.control.publishable_value}
-      Duration: #{result.control.duration}
-      Error: #{result.control.error&.message}
+      #{control.slug}
+      Value: #{control.publishable_value}
+      Duration: #{control.duration}
+      Error: #{control.error&.message}
 
-      [Candidate]
-      Value: #{result.candidate.publishable_value}
-      Duration: #{result.candidate.duration}
-      Error: #{result.candidate.error&.message}
+      #{candidate.slug}
+      Value: #{candidate.publishable_value}
+      Duration: #{candidate.duration}
+      Error: #{candidate.error&.message}
     MISMATCH
   end
 end
+```
+Running a mismatched experiment with this implementation of `publish!` would produce:
+
+```
+😮
+
+my_experiment.control
+Value: 420
+Duration: 12.934
+Error:
+
+my_experiment.candidate
+Value: 69
+Duration: 9.702
+Error:
 ```
 
 ## Development
