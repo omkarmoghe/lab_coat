@@ -3,7 +3,7 @@
 module LabCoat
   # A wrapper around some behavior that captures the resulting `value` and any exceptions thrown.
   class Observation
-    attr_reader :name, :experiment, :duration, :value, :error
+    attr_reader :name, :experiment, :duration, :value, :error, :publishable_value
 
     def initialize(name, experiment, &block) # rubocop:disable Metrics/MethodLength
       @name = name
@@ -12,6 +12,7 @@ module LabCoat
       start_at = Process.clock_gettime(Process::CLOCK_MONOTONIC, :float_second)
       begin
         @value = block.call
+        @publishable_value = experiment.publishable_value(self)
       rescue StandardError => e
         @error = e
       ensure
@@ -19,12 +20,6 @@ module LabCoat
       end
 
       freeze
-    end
-
-    # @return [Object] A publishable representation of this observation's `value`. Typically something that is
-    # serializable
-    def publishable_value
-      @publishable_value ||= experiment.publishable_value(value)
     end
 
     # @return [TrueClass, FalseClass]
