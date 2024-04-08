@@ -23,7 +23,26 @@ If bundler is not being used to manage dependencies, install the gem by executin
 
 ### Create an `Experiment`
 
-To do some science, i.e. test out a new code path, start by defining an `Experiment`. An experiment is any class that inherits from `LabCoat::Experiment` and implements the required methods.
+To do some science, i.e. test out a new code path, start by defining an `Experiment`. An experiment is any class that inherits from `LabCoat::Experiment` and implements the [required methods](#required-methods).
+
+```ruby
+# your_experiment.rb
+class YourExperiment < LabCoat::Experiment
+  def control
+    expensive_query.first
+  end
+
+  def candidate
+    refactored_version_of_the_query.first
+  end
+
+  def enabled?
+    true
+  end
+end
+```
+
+The base initializer for an `Experiment` requires a `name` argument; it's a good idea to name your experiments.
 
 #### Required methods
 
@@ -76,7 +95,7 @@ class ApplicationExperiment < LabCoat::Experiment
 end
 ```
 
-You might also have a common way to enable experiments such as a feature flag system and/or common guards you want to enforce application wide.
+You might also have a common way to enable experiments such as a feature flag system and/or common guards you want to enforce application wide. These might come from a mix of services and the `Experiment`'s state.
 
 ```ruby
 # application_experiment.rb
