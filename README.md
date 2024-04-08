@@ -11,15 +11,60 @@ This library is heavily inspired by [Scientist](https://github.com/github/scient
 
 Install the gem and add to the application's Gemfile by executing:
 
-    $ bundle add lab_coat
+`bundle add lab_coat`
 
 If bundler is not being used to manage dependencies, install the gem by executing:
 
-    $ gem install lab_coat
+`gem install lab_coat`
 
 ## Usage
 
-TODO: Write usage instructions here
+### Create an `Experiment`
+
+### Make some `Observations`
+
+You don't have to create an `Observation` yourself; that happens automatically when you call `Experiment#run!`.
+
+### Publish the `Result`
+
+A `Result` represents a single run of an `Experiment`.
+
+|Attribute|Description|
+|---|---|
+|`experiment`|The `Experiment` instance this `Result` is for.|
+|`control`|An `Observation` instance representing the `Experiment#control` behavior|
+|`candidate`|An `Observation` instance representing the `Experiment#candidate` behavior|
+|`matched?`|Whether or not the `control` and `candidate` match, as defined by `Experiment#compare`|
+|`ignored?`|Whether or not the result should be ignored, as defined by `Experiment#ignore?`|
+
+The `Result` is passed to your implementation of `#publish!` when an `Experiment` is finished running.
+
+```ruby
+def publish!(result)
+  if result.ignored?
+    puts "🙈"
+    return
+  end
+
+  if result.matched?
+    puts "😎"
+  else
+    puts <<~MISMATCH
+      😮
+
+      [Control]
+      Value: #{result.control.publishable_value}
+      Duration: #{result.control.duration}
+      Error: #{result.control.error&.message}
+
+      [Candidate]
+      Value: #{result.candidate.publishable_value}
+      Duration: #{result.candidate.duration}
+      Error: #{result.candidate.error&.message}
+    MISMATCH
+  end
+end
+```
 
 ## Development
 
