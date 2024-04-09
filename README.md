@@ -55,6 +55,9 @@ See the [`Experiment`](lib/lab_coat/experiment.rb) class for more details.
 |`enabled?`|Returns a `Boolean` that controls whether or not the experiment runs.|
 |`publish!`|This is not _technically_ required, but `Experiments` are not useful unless you can analyze the results. Override this method to record the `Result` however you wish.|
 
+> [!TIP]
+> The `#run!` method accepts arbitrary arguments and forwards them to `enabled?`, `control`, and `candidate` in case you need to provide data at runtime.
+
 #### Additional methods
 
 |Method|Description|
@@ -63,7 +66,10 @@ See the [`Experiment`](lib/lab_coat/experiment.rb) class for more details.
 |`ignore?`|Whether or not the result should be ignored. Ignored `Results` are still passed to `#publish!`|
 |`raised`|Callback method that's called when an `Observation` raises.|
 
-You should create a shared base class(es) to maintain consistency across experiments within your app. You may want to give your experiment some context, or state. You can do this via an initializer or writer methods just like any other Ruby class.
+> [!TIP]
+> You should create a shared base class(es) to maintain consistency across experiments within your app.
+
+You may want to give your experiment some context, or state. You can do this via an initializer or writer methods just like any other Ruby class.
 
 ```ruby
 # application_experiment.rb
@@ -77,7 +83,7 @@ class ApplicationExperiment < LabCoat::Experiment
 end
 ```
 
-You likely want to `publish!` all experiments in a uniform way, so that you can analyze the data and make decisions.
+You likely want to `publish!` all experiments in a consistent way, so that you can analyze the data and make decisions. New `Experiment` authors should not have to redo the "plumbing" between your experimentation framework (e.g. `LabCoat`) and your observability (o11y) process.
 
 ```ruby
 # application_experiment.rb
@@ -108,7 +114,7 @@ end
 
 ### Make some `Observations` via `run!`
 
-You don't have to create an `Observation` yourself; that happens automatically when you call `Experiment#run!`. The control and candidate `Observations` are packaged into a `Result` [passed to `Experiment#publish!`](#publish-the-result).
+You don't have to create an `Observation` yourself; that happens automatically when you call `Experiment#run!`. The control and candidate `Observations` are packaged into a `Result` and [passed to `Experiment#publish!`](#publish-the-result).
 
 |Attribute|Description|
 |---|---|
@@ -215,6 +221,32 @@ Duration: 9.702
 Error:
 ```
 
+### Standalone `Observations`
+
+The `Observation` class can be used as a standalone wrapper for any code that you want to experiment with. Instantiating an `Observation` automatically:
+- measures the duration of the code block
+- captures the return value of the code block
+- rescues and stores any errors raised by the code block
+
+```ruby
+10.times do |i|
+  observation = Observation.new("test-#{i}", nil) do
+    some_code_path
+  end
+
+  puts "#{observation.name} results:"
+  if observation.raised?
+    puts "error: #{observation.error.message}"
+  else
+    puts "duration: #{observation.duration}"
+    puts "succeeded: #{!observation.raised?}"
+  end
+end
+```
+
+> [!WARNING]
+> Be careful when using `Observation` instances without an `Experiment` set. Some methods like `#publishable_value` and `#slug` depend on an `experiment` and may raise an error when called.
+
 ## Development
 
 After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake test` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
@@ -223,7 +255,7 @@ To install this gem onto your local machine, run `bundle exec rake install`. To 
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/lab_coat.
+Bug reports and pull requests are welcome on GitHub at https://github.com/omkarmoghe/lab_coat.
 
 ## License
 
