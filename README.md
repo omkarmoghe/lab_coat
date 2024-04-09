@@ -69,7 +69,7 @@ See the [`Experiment`](lib/lab_coat/experiment.rb) class for more details.
 > [!TIP]
 > You should create a shared base class(es) to maintain consistency across experiments within your app.
 
-You may want to give your experiment some context, or state. You can do this via an initializer or writer methods just like any other Ruby class.
+You might want to give your experiment some context, or state. You can do this via an initializer or writer methods just like any other Ruby class.
 
 ```ruby
 # application_experiment.rb
@@ -83,7 +83,7 @@ class ApplicationExperiment < LabCoat::Experiment
 end
 ```
 
-You likely want to `publish!` all experiments in a consistent way, so that you can analyze the data and make decisions. New `Experiment` authors should not have to redo the "plumbing" between your experimentation framework (e.g. `LabCoat`) and your observability (o11y) process.
+You might want to `publish!` all experiments in a consistent way, so that you can analyze the data and make decisions. New `Experiment` authors should not have to redo the "plumbing" between your experimentation framework (e.g. `LabCoat`) and your observability (o11y) process.
 
 ```ruby
 # application_experiment.rb
@@ -101,13 +101,27 @@ class ApplicationExperiment < LabCoat::Experiment
 end
 ```
 
-You might also have a common way to enable experiments such as a feature flag system and/or common guards you want to enforce application wide. These might come from a mix of services and the `Experiment`'s state.
+You might have a common way to enable experiments such as a feature flag system and/or common guards you want to enforce application wide. These might come from a mix of services and the `Experiment`'s state.
 
 ```ruby
 # application_experiment.rb
 class ApplicationExperiment < LabCoat::Experiment
   def enabled?
     !@is_admin && YourFeatureFlagService.flag_enabled?(@user.id, name)
+  end
+end
+```
+
+You might want to track any errors thrown from all your experiments and route them to some service, or log them.
+
+```ruby
+# application_experiment.rb
+class ApplicationExperiment < LabCoat::Experiment
+  def raised(observation)
+    puts <<~MSG
+      #{observation.slug} raised error: #{observation.error.class.name}
+      #{observation.error.full_message}
+    MSG
   end
 end
 ```
@@ -189,7 +203,7 @@ def publish!(result)
   else
     control = result.control
     candidate = result.candidate
-    puts <<~MISMATCH
+    puts <<~MSG
       😮
 
       #{control.slug}
@@ -201,7 +215,7 @@ def publish!(result)
       Value: #{candidate.publishable_value}
       Duration: #{candidate.duration}
       Error: #{candidate.error&.message}
-    MISMATCH
+    MSG
   end
 end
 ```
@@ -238,8 +252,10 @@ The `Observation` class can be used as a standalone wrapper for any code that yo
   if observation.raised?
     puts "error: #{observation.error.message}"
   else
-    puts "duration: #{observation.duration}"
-    puts "succeeded: #{!observation.raised?}"
+    puts <<~MSG
+      duration: #{observation.duration}
+      succeeded: #{!observation.raised?}
+    MSG
   end
 end
 ```
