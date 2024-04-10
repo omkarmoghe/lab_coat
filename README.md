@@ -50,10 +50,10 @@ See the [`Experiment`](lib/lab_coat/experiment.rb) class for more details.
 
 |Method|Description|
 |---|---|
-|`candidate(...)`|The new behavior you want to test.|
-|`control(...)`|The existing or default behavior. This will always be returned from `#run!`.|
-|`enabled?(...)`|Returns a `Boolean` that controls whether or not the experiment runs.|
-|`publish!(result)`|This is not _technically_ required, but `Experiments` are not useful unless you can analyze the results. Override this method to record the `Result` however you wish.|
+|`candidate`|The new behavior you want to test.|
+|`control`|The existing or default behavior. This will always be returned from `#run!`.|
+|`enabled?`|Returns a `Boolean` that controls whether or not the experiment runs.|
+|`publish!`|This is not _technically_ required, but `Experiments` are not useful unless you can analyze the results. Override this method to record the `Result` however you wish.|
 
 > [!TIP]
 > The `#run!` method accepts arbitrary arguments and forwards them to `enabled?`, `control`, and `candidate` in case you need to provide data at runtime.
@@ -62,9 +62,9 @@ See the [`Experiment`](lib/lab_coat/experiment.rb) class for more details.
 
 |Method|Description|
 |---|---|
-|`compare(control, candidate)`|Whether or not the result is a match. This is how you can run complex/custom comparisons.|
-|`ignore?(control, candidate)`|Whether or not the result should be ignored. Ignored `Results` are still passed to `#publish!`|
-|`raised(observation)`|Callback method that's called when an `Observation` raises.|
+|`compare`|Whether or not the result is a match. This is how you can run complex/custom comparisons.|
+|`ignore?`|Whether or not the result should be ignored. Ignored `Results` are still passed to `#publish!`|
+|`raised`|Callback method that's called when an `Observation` raises.|
 
 > [!TIP]
 > You should create a shared base class(es) to maintain consistency across experiments within your app.
