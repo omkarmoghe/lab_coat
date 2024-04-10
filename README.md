@@ -2,7 +2,7 @@
 
 ![Gem Version](https://img.shields.io/gem/v/lab_coat) ![Gem Total Downloads](https://img.shields.io/gem/dt/lab_coat)
 
-A simple experiment library to safely test new code paths.
+A simple experiment library to safely test new code paths. `LabCoat` is designed to be highly customizable and play nice with your existing tools/services.
 
 This library is heavily inspired by [Scientist](https://github.com/github/scientist), with some key differences:
 - `Experiments` are `classes`, not `modules` which means they are stateful by default.
