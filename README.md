@@ -190,7 +190,7 @@ def publish!(result)
 end
 ```
 
-> ![NOTE]
+> [!NOTE]
 > All `Results` are passed to `publish!`, **including ignored ones**. It is your responsibility to call the `ignored?` method and handle those as you wish.
 
 You can always access all of the attributes of the `Result` and its `Observations` directly to fully customize what your experiment publishing looks like.
