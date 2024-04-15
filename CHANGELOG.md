@@ -1,4 +1,4 @@
-## [0.1.2] - Unreleased
+## [0.1.2] - 2024-04-15
 - use `Benchmark` to capture the duration with more details
 - add `to_h` methods to `Result` and `Observation` for convenience
 
