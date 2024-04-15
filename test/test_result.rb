@@ -23,4 +23,13 @@ class TestResult < Minitest::Test
   def test_ignored?
     assert(@result.ignored?)
   end
+
+  def test_to_h
+    hash = @result.to_h
+    assert_includes(hash, :experiment)
+    assert_includes(hash, :matched)
+    assert_includes(hash, :ignored)
+    assert_includes(hash, :control)
+    assert_includes(hash, :candidate)
+  end
 end

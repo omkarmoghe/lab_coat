@@ -15,7 +15,8 @@ class TestObservation < Minitest::Test
   end
 
   def test_duration
-    assert_operator(@observation.duration, :>=, 0)
+    assert_kind_of(Benchmark::Tms, @observation.duration)
+    assert_operator(@observation.duration.real, :>=, 0)
   end
 
   def test_value
@@ -38,5 +39,16 @@ class TestObservation < Minitest::Test
 
   def test_slug
     assert_equal("test_experiment.control", @observation.slug)
+  end
+
+  def test_to_h
+    hash = @observation.to_h
+    assert_includes(hash, :name)
+    assert_includes(hash, :experiment)
+    assert_includes(hash, :slug)
+    assert_includes(hash, :value)
+    assert_includes(hash, :duration)
+    refute_includes(hash, :error_class)
+    refute_includes(hash, :error_message)
   end
 end
