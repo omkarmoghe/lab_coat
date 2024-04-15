@@ -74,8 +74,6 @@ You might want to give your experiment some context, or state. You can do this v
 ```ruby
 # application_experiment.rb
 class ApplicationExperiment < LabCoat::Experiment
-  attr_reader :user, :is_admin
-
   def initialize(user)
     @user = user
     @is_admin = user.admin?
@@ -83,20 +81,14 @@ class ApplicationExperiment < LabCoat::Experiment
 end
 ```
 
-You might want to `publish!` all experiments in a consistent way, so that you can analyze the data and make decisions. New `Experiment` authors should not have to redo the "plumbing" between your experimentation framework (e.g. `LabCoat`) and your observability (o11y) process.
+You might want to `publish!` all experiments in a consistent way so that you can analyze the data and make decisions. New `Experiment` authors should not have to redo the "plumbing" between your experimentation framework (e.g. `LabCoat`) and your observability (o11y) process.
 
 ```ruby
 # application_experiment.rb
 class ApplicationExperiment < LabCoat::Experiment
   def publish!(result)
-    YourO11yService.track_experiment_result(
-      name: result.experiment.name,
-      matched: result.matched?,
-      observations: {
-        control: result.control.publishable_value,
-        candidate: result.candidate.publishable_value,
-      }
-    )
+    payload = result.to_h.merge(user_id: @user.id)
+    YourO11yService.track_experiment_result(payload)
   end
 end
 ```
@@ -118,10 +110,10 @@ You might want to track any errors thrown from all your experiments and route th
 # application_experiment.rb
 class ApplicationExperiment < LabCoat::Experiment
   def raised(observation)
-    puts <<~MSG
-      #{observation.slug} raised error: #{observation.error.class.name}
-      #{observation.error.full_message}
-    MSG
+    YourErrorService.report_error(
+      observation.error,
+      tags: observation.to_h
+    )
   end
 end
 ```
@@ -132,13 +124,14 @@ You don't have to create an `Observation` yourself; that happens automatically w
 
 |Attribute|Description|
 |---|---|
-|`duration`|The duration of the run in `float` seconds.|
+|`duration`|The duration of the run represented as a `Benchmark::Tms` object.|
 |`error`|If the code path raised, the thrown exception is stored here.|
 |`experiment`|The `Experiment` instance this `Result` is for.|
 |`name`|Either `"control"` or `"candidate"`.|
 |`publishable_value`|A publishable representation of the `value`, as defined by `Experiment#publishable_value`.|
 |`raised?`|Whether or not the code path raised.|
 |`slug`|A combination of the `Experiment#name` and `Observation#name`, e.g. `"experiment_name.control"`|
+|`to_h`|A hash representation of the `Observation`. Useful for publishing and/or reporting.|
 |`value`|The return value of the observed code path.|
 
 `Observation` instances are passed to many of the `Experiment` methods that you may override.
@@ -159,18 +152,14 @@ def ignore?(control, candidate)
 end
 
 def publishable_value(observation)
-  if observation.raised?
-    {
-      error_class: observation.error.class.name,
-      error_message: observation.error.message
-    }
-  else
-    {
-      type: observation.name,
-      value: observation.publishable_value,
-      duration: observation.duration
-    }
-  end
+  return nil if observation.raised?
+
+  # Let's say your control and candidate blocks return objects that don't serialize nicely.
+  {
+    some_attribute: observation.value.some_attribute,
+    some_other_attribute: observation.value.some_other_attribute,
+    some_count: observation.value.some_array.count
+  }
 end
 
 # Elsewhere...
@@ -188,10 +177,26 @@ A `Result` represents a single run of an `Experiment`.
 |`experiment`|The `Experiment` instance this `Result` is for.|
 |`ignored?`|Whether or not the result should be ignored, as defined by `Experiment#ignore?`|
 |`matched?`|Whether or not the `control` and `candidate` match, as defined by `Experiment#compare`|
+|`to_h`|A hash representation of the `Result`. Useful for publishing and/or reporting.|
 
-The `Result` is passed to your implementation of `#publish!` when an `Experiment` is finished running.
+The `Result` is passed to your implementation of `#publish!` when an `Experiment` is finished running. The `to_h` method on a Result is a good place to start and might be sufficient for most experiments.
 
 ```ruby
+# your_experiment.rb
+def publish!(result)
+  return if result.ignored?
+
+  puts result.to_h
+end
+```
+
+> ![NOTE]
+> All `Results` are passed to `publish!`, **including ignored ones**. It is your responsibility to call the `ignored?` method and handle those as you wish.
+
+You can always access all of the attributes of the `Result` and its `Observations` directly to fully customize what your experiment publishing looks like.
+
+```ruby
+# your_experiment.rb
 def publish!(result)
   if result.ignored?
     puts "🙈"
@@ -208,17 +213,22 @@ def publish!(result)
 
       #{control.slug}
       Value: #{control.publishable_value}
-      Duration: #{control.duration}
+      Duration Real: #{control.duration.real}
+      Duration System: #{control.duration.stime}
+      Duration User: #{control.duration.utime}
       Error: #{control.error&.message}
 
       #{candidate.slug}
       Value: #{candidate.publishable_value}
-      Duration: #{candidate.duration}
+      Duration: #{candidate.duration.real}
+      Duration System: #{candidate.duration.stime}
+      Duration User: #{candidate.duration.utime}
       Error: #{candidate.error&.message}
     MSG
   end
 end
 ```
+
 Running a mismatched experiment with this implementation of `publish!` would produce:
 
 ```
@@ -226,12 +236,16 @@ Running a mismatched experiment with this implementation of `publish!` would pro
 
 my_experiment.control
 Value: 420
-Duration: 12.934
+Duration Real: 12.934
+Duration System: 2.134
+Duration User: 10.800
 Error:
 
 my_experiment.candidate
 Value: 69
-Duration: 9.702
+Duration Real: 9.702
+Duration System: 1.002
+Duration User: 8.700
 Error:
 ```
 
@@ -253,7 +267,7 @@ The `Observation` class can be used as a standalone wrapper for any code that yo
     puts "error: #{observation.error.message}"
   else
     puts <<~MSG
-      duration: #{observation.duration}
+      duration: #{observation.duration.real}
       succeeded: #{!observation.raised?}
     MSG
   end

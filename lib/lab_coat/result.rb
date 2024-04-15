@@ -26,5 +26,16 @@ module LabCoat
     def ignored?
       @ignored
     end
+
+    # @return [Hash] A hash representation of this `Result`. Useful when publishing.
+    def to_h
+      {
+        experiment: experiment.name,
+        matched: matched?,
+        ignored: ignored?,
+        control: control.to_h,
+        candidate: candidate.to_h
+      }
+    end
   end
 end

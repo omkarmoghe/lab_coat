@@ -9,13 +9,10 @@ module LabCoat
       @name = name
       @experiment = experiment
 
-      start_at = Process.clock_gettime(Process::CLOCK_MONOTONIC, :float_second)
-      begin
+      @duration = Benchmark.measure(name) do
         @value = block.call
       rescue StandardError => e
         @error = e
-      ensure
-        @duration = Process.clock_gettime(Process::CLOCK_MONOTONIC, :float_second) - start_at
       end
     end
 
@@ -28,9 +25,22 @@ module LabCoat
       !error.nil?
     end
 
-    # @return [String] String representing this Observation.
+    # @return [String] String representing this `Observation`.
     def slug
       "#{experiment.name}.#{name}"
+    end
+
+    # @return [Hash] A hash representation of this `Observation`. Useful when publishing `Results`.
+    def to_h
+      {
+        name: name,
+        experiment: experiment.name,
+        slug: slug,
+        value: publishable_value,
+        duration: duration.to_h,
+        error_class: error&.class&.name,
+        error_message: error&.message
+      }.compact
     end
   end
 end
