@@ -8,6 +8,7 @@ This library is heavily inspired by [Scientist](https://github.com/github/scient
 - `Experiments` are `classes`, not `modules` which means they are stateful by default.
 - There is no app wide default experiment that gets magically set.
 - The `Result` only supports one comparison at a time, i.e. only 1 `candidate` is allowed per run.
+- The `duration` is measured using Ruby's `Benchmark`.
 
 ## Installation
 
