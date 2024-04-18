@@ -60,24 +60,38 @@ module LabCoat
     # Runs the control and candidate and publishes the result. Always returns the result of `control`.
     # @param context [Hash] Any data needed at runtime.
     def run!(...) # rubocop:disable Metrics/MethodLength
+      enforce_arity!
+
       # Run the control and exit early if the experiment is not enabled.
-      control = Observation.new("control", self) do
+      control_obs = Observation.new("control", self) do
         control(...)
       end
-      raised(control) if control.raised?
-      return control.value unless enabled?(...)
+      raised(control_obs) if control_obs.raised?
+      return control_obs.value unless enabled?(...)
 
-      candidate = Observation.new("candidate", self) do
+      candidate_obs = Observation.new("candidate", self) do
         candidate(...)
       end
-      raised(candidate) if candidate.raised?
+      raised(candidate_obs) if candidate_obs.raised?
 
       # Compare and publish the results.
-      result = Result.new(self, control, candidate)
+      result = Result.new(self, control_obs, candidate_obs)
       publish!(result)
 
       # Always return the control.
-      control.value
+      control_obs.value
+    end
+
+    private
+
+    # Because `run!` forwards arbitrary args to `#enabled?`, `control`, and `candidate`, the methods must have the same
+    # arity. Otherwise
+    def enforce_arity!
+      return if %i[enabled? control candidate].map { |m| method(m).arity }.uniq.size == 1
+
+      raise InvalidExperimentError,
+            "The `#enabled?`, `#control` and `#candidate` methods must have the same arity. All runtime args passed " \
+            "to `#run!` are forwarded to these methods."
     end
   end
 end
