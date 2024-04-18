@@ -56,8 +56,8 @@ See the [`Experiment`](lib/lab_coat/experiment.rb) class for more details.
 |`enabled?`|Returns a `Boolean` that controls whether or not the experiment runs.|
 |`publish!`|This is not _technically_ required, but `Experiments` are not useful unless you can analyze the results. Override this method to record the `Result` however you wish.|
 
-> [!TIP]
-> The `#run!` method accepts arbitrary arguments and forwards them to `enabled?`, `control`, and `candidate` in case you need to provide data at runtime.
+> [!IMPORTANT]
+> The `#run!` method accepts arbitrary arguments and forwards them to `enabled?`, `control`, and `candidate` in case you need to provide data at runtime. This means the [arity](https://en.wikipedia.org/wiki/Arity) of the three methods needs to be the same. This is enforced by `LabCoat` at runtime.
 
 #### Additional methods
 

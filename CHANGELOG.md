@@ -1,3 +1,6 @@
+## [0.1.3] - 2024-04-17
+- `Experiment` now enforces arity at runtime for the `#enabled?`, `control`, and `candidate` methods.
+
 ## [0.1.2] - 2024-04-15
 - use `Benchmark` to capture the duration with more details
 - add `to_h` methods to `Result` and `Observation` for convenience
