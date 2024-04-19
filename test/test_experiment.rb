@@ -47,13 +47,16 @@ class TestExperiment < Minitest::Test
   def setup
     @experiment = TestExperiment.new("test-experiment")
     @control = LabCoat::Observation.new("control", @experiment) do
-      @experiment.control(2)
+      @experiment.control
     end
   end
 
   def test_enabled?
-    refute(@experiment.enabled?(1))
-    assert(@experiment.enabled?(2))
+    @experiment.instance_variable_set(:@context, { num: 1 })
+    refute(@experiment.enabled?)
+    @experiment.instance_variable_set(:@context, { num: 2 })
+    assert(@experiment.enabled?)
+    @experiment.instance_variable_set(:@context, {})
   end
 
   def test_compare
