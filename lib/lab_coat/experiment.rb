@@ -12,7 +12,7 @@ module LabCoat
 
     # Override this method to control whether or not the experiment runs.
     # @return [TrueClass, FalseClass]
-    def enabled?(...)
+    def enabled?
       raise InvalidExperimentError, "`#enabled?` must be implemented in your Experiment class."
     end
 
@@ -69,6 +69,7 @@ module LabCoat
       raised(control_obs) if control_obs.raised?
       return control_obs.value unless enabled?
 
+      # Run the candidate.
       candidate_obs = Observation.new("candidate", self) { candidate }
       raised(candidate_obs) if candidate_obs.raised?
 
@@ -81,18 +82,6 @@ module LabCoat
 
       # Always return the control.
       control_obs.value
-    end
-
-    private
-
-    # Because `run!` forwards arbitrary args to `#enabled?`, `control`, and `candidate`, the methods must have the same
-    # arity. Otherwise
-    def enforce_arity!
-      return if %i[enabled? control candidate].map { |m| method(m).arity }.uniq.size == 1
-
-      raise InvalidExperimentError,
-            "The `#enabled?`, `#control` and `#candidate` methods must have the same arity. All runtime args passed " \
-            "to `#run!` are forwarded to these methods."
     end
   end
 end
