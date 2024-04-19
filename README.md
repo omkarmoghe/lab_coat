@@ -54,7 +54,7 @@ See the [`Experiment`](lib/lab_coat/experiment.rb) class for more details.
 |`candidate`|The new behavior you want to test.|
 |`control`|The existing or default behavior. This will always be returned from `#run!`.|
 |`enabled?`|Returns a `Boolean` that controls whether or not the experiment runs.|
-|`publish!`|This is not _technically_ required, but `Experiments` are not useful unless you can analyze the results. Override this method to record the `Result` however you wish.|
+|`publish!`|This is _technically_ not required, but `Experiments` are not useful unless you can analyze the results. Override this method to record the `Result` however you wish.|
 
 > [!IMPORTANT]
 > The `#run!` method accepts arbitrary key word arguments and stores them in an instance variable called `@context` in case you need to provide data at runtime. You can access the runtime context via `@context` or `context`. The runtime context **is reset** after each run.
@@ -63,8 +63,9 @@ See the [`Experiment`](lib/lab_coat/experiment.rb) class for more details.
 
 |Method|Description|
 |---|---|
-|`compare`|Whether or not the result is a match. This is how you can run complex/custom comparisons.|
-|`ignore?`|Whether or not the result should be ignored. Ignored `Results` are still passed to `#publish!`|
+|`compare`|Whether or not the result is a match. This is how you can run complex/custom comparisons. Defaults to `control.value == candidate.value`.|
+|`ignore?`|Whether or not the result should be ignored. Ignored `Results` are still passed to `#publish!`. Defaults to `false`, i.e. nothing is ignored.|
+|`publishable_value`|The data to publish for a given `Observation`. This value is only for publishing and **is not** returned by `run!`. Defaults to `Observation#value`.|
 |`raised`|Callback method that's called when an `Observation` raises.|
 
 > [!TIP]
@@ -151,8 +152,10 @@ def compare(control, candidate)
 end
 
 def ignore?(control, candidate)
+  # You might ignore runs that throw errors and handle them separately via `raised`.
   return true if control.raised? || candidate.raised?
-  return true if candidate.value.some_guard?
+  # You might ignore runs where the candidate meets some condition.
+  return true if candidate.value.some_condition?
 
   false
 end
@@ -185,19 +188,19 @@ A `Result` represents a single run of an `Experiment`.
 |`matched?`|Whether or not the `control` and `candidate` match, as defined by `Experiment#compare`|
 |`to_h`|A hash representation of the `Result`. Useful for publishing and/or reporting.|
 
-The `Result` is passed to your implementation of `#publish!` when an `Experiment` is finished running. The `to_h` method on a Result is a good place to start and might be sufficient for most experiments. You might want to `merge` additional data such as the runtime `context` or other state if you find that relevant for analysis.
+The `Result` is passed to your implementation of `#publish!` when an `Experiment` is finished running. The `to_h` method on a Result is a good place to start and might be sufficient for most experiments. You might want to include additional data such as the runtime `context` or other state if you find that relevant for analysis.
 
 ```ruby
 # your_experiment.rb
 def publish!(result)
   return if result.ignored?
 
-  puts result.to_h.merge(run_context: context)
+  puts result.to_h.merge(context:)
 end
 ```
 
 > [!NOTE]
-> All `Results` are passed to `publish!`, **including ignored ones**. It is your responsibility to call the `ignored?` method and handle those as you wish.
+> All `Results` are passed to `publish!`, **including ignored ones**. It is your responsibility to check the `ignored?` method and handle those as you wish.
 
 You can always access all of the attributes of the `Result` and its `Observations` directly to fully customize what your experiment publishing looks like.
 
