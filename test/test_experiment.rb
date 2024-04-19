@@ -7,15 +7,15 @@ class TestExperiment < Minitest::Test
   TestExperiment = Class.new(LabCoat::Experiment) do
     attr_reader :raised_observations, :publish_io
 
-    def enabled?(num)
-      num.even?
+    def enabled?
+      context[:num].even?
     end
 
-    def control(_num)
+    def control
       { result: "abc", status: :ok }
     end
 
-    def candidate(_num)
+    def candidate
       raise StandardError, "boom!"
     end
 
@@ -79,7 +79,7 @@ class TestExperiment < Minitest::Test
 
   def test_raised
     assert_nil(@experiment.raised_observations)
-    @experiment.run!(2) # even number to enable experiment
+    @experiment.run!(num: 2) # even number to enable experiment
     refute_includes(@experiment.raised_observations, "test-experiment.control")
     assert_includes(@experiment.raised_observations, "test-experiment.candidate")
   end
@@ -92,18 +92,18 @@ class TestExperiment < Minitest::Test
   end
 
   def test_publish!
-    @experiment.run!(2)
+    @experiment.run!(num: 2)
     assert_match(/"experiment":"test-experiment"/, @experiment.publish_io.read)
   end
 
   def test_run!
     assert_equal(
       { result: "abc", status: :ok },
-      @experiment.run!(1)
+      @experiment.run!(num: 1)
     )
     assert_equal(
       { result: "abc", status: :ok },
-      @experiment.run!(2)
+      @experiment.run!(num: 2)
     )
   end
 end
