@@ -57,7 +57,7 @@ See the [`Experiment`](lib/lab_coat/experiment.rb) class for more details.
 |`publish!`|This is not _technically_ required, but `Experiments` are not useful unless you can analyze the results. Override this method to record the `Result` however you wish.|
 
 > [!IMPORTANT]
-> The `#run!` method accepts arbitrary arguments and forwards them to `enabled?`, `control`, and `candidate` in case you need to provide data at runtime. This means the [arity](https://en.wikipedia.org/wiki/Arity) of the three methods needs to be the same. This is enforced by `LabCoat` at runtime.
+> The `#run!` method accepts arbitrary key word arguments and stores them in an instance variable called `@context` in case you need to provide data at runtime. You can access the runtime context via `@context` or `context`. The runtime context **is reset** after each run.
 
 #### Additional methods
 
@@ -88,13 +88,16 @@ You might want to `publish!` all experiments in a consistent way so that you can
 # application_experiment.rb
 class ApplicationExperiment < LabCoat::Experiment
   def publish!(result)
-    payload = result.to_h.merge(user_id: @user.id)
+    payload = result.to_h.merge(
+      user_id: @user.id, # e.g. something from the `Experiment` state
+      build_number: context.version # e.g. something from the runtime context
+    )
     YourO11yService.track_experiment_result(payload)
   end
 end
 ```
 
-You might have a common way to enable experiments such as a feature flag system and/or common guards you want to enforce application wide. These might come from a mix of services and the `Experiment`'s state.
+You might have a common way to enable experiments such as a feature flag system and/or common guards you want to enforce application wide. These might come from a mix of services, the `Experiment`'s state, or the runtime `context`.
 
 ```ruby
 # application_experiment.rb
@@ -122,6 +125,8 @@ end
 ### Make some `Observations` via `run!`
 
 You don't have to create an `Observation` yourself; that happens automatically when you call `Experiment#run!`. The control and candidate `Observations` are packaged into a `Result` and [passed to `Experiment#publish!`](#publish-the-result).
+
+The `run!` method accepts arbitrary keyword arguments, to allow you to set runtime context for the specific run of the experiment. You can access this `Hash` via the `context` reader method, or directly via the `@context` instance variable.
 
 |Attribute|Description|
 |---|---|
@@ -180,14 +185,14 @@ A `Result` represents a single run of an `Experiment`.
 |`matched?`|Whether or not the `control` and `candidate` match, as defined by `Experiment#compare`|
 |`to_h`|A hash representation of the `Result`. Useful for publishing and/or reporting.|
 
-The `Result` is passed to your implementation of `#publish!` when an `Experiment` is finished running. The `to_h` method on a Result is a good place to start and might be sufficient for most experiments.
+The `Result` is passed to your implementation of `#publish!` when an `Experiment` is finished running. The `to_h` method on a Result is a good place to start and might be sufficient for most experiments. You might want to `merge` additional data such as the runtime `context` or other state if you find that relevant for analysis.
 
 ```ruby
 # your_experiment.rb
 def publish!(result)
   return if result.ignored?
 
-  puts result.to_h
+  puts result.to_h.merge(run_context: context)
 end
 ```
 
@@ -276,7 +281,7 @@ end
 ```
 
 > [!WARNING]
-> Be careful when using `Observation` instances without an `Experiment` set. Some methods like `#publishable_value` and `#slug` depend on an `experiment` and may raise an error when called.
+> Be careful when using `Observation` instances without an `Experiment` set. Some methods like `#publishable_value` and `#slug` depend on an `experiment` and may raise an error or return unexpected values when called without one.
 
 ## Development
 

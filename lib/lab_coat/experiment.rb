@@ -3,10 +3,11 @@
 module LabCoat
   # A base experiment class meant to be subclassed to define various experiments.
   class Experiment
-    attr_reader :name
+    attr_reader :name, :context
 
     def initialize(name)
       @name = name
+      @context = {}
     end
 
     # Override this method to control whether or not the experiment runs.
@@ -18,13 +19,13 @@ module LabCoat
     # Override this method to define the existing aka "control" behavior. This method is always run, even when
     # `enabled?` is false.
     # @return [Object] Anything.
-    def control(...)
+    def control
       raise InvalidExperimentError, "`#control` must be implemented in your Experiment class."
     end
 
     # Override this method to define the new aka "candidate" behavior. Only run if the experiment is enabled.
     # @return [Object] Anything.
-    def candidate(...)
+    def candidate
       raise InvalidExperimentError, "`#candidate` must be implemented in your Experiment class."
     end
 
@@ -59,24 +60,24 @@ module LabCoat
 
     # Runs the control and candidate and publishes the result. Always returns the result of `control`.
     # @param context [Hash] Any data needed at runtime.
-    def run!(...) # rubocop:disable Metrics/MethodLength
-      enforce_arity!
+    def run!(**context)
+      # Set the context for this run.
+      @context = context
 
       # Run the control and exit early if the experiment is not enabled.
-      control_obs = Observation.new("control", self) do
-        control(...)
-      end
+      control_obs = Observation.new("control", self) { control }
       raised(control_obs) if control_obs.raised?
-      return control_obs.value unless enabled?(...)
+      return control_obs.value unless enabled?
 
-      candidate_obs = Observation.new("candidate", self) do
-        candidate(...)
-      end
+      candidate_obs = Observation.new("candidate", self) { candidate }
       raised(candidate_obs) if candidate_obs.raised?
 
       # Compare and publish the results.
       result = Result.new(self, control_obs, candidate_obs)
       publish!(result)
+
+      # Reset the context for this run.
+      @context = {}
 
       # Always return the control.
       control_obs.value

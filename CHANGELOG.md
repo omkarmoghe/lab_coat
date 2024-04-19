@@ -1,3 +1,7 @@
+## [0.1.4] - Unreleased
+- Remove the arity check, it's not very intuitive
+- Adds a `@context` that gets set at runtime and reset after each run. This is a much simpler way for methods to access a shared runtime context that can be set per `run!`.
+
 ## [0.1.3] - 2024-04-17
 - `Experiment` now enforces arity at runtime for the `#enabled?`, `control`, and `candidate` methods.
 
