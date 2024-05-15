@@ -67,7 +67,7 @@ module LabCoat
     # the control `Observation`. This method is only called if the `Experiment` is enabled. This is useful for rolling
     # out new behavior in a controlled way.
     # @param result [LabCoat::Result] The result of the experiment.
-    # @return [TrueClass, FalseClass]
+    # @return [LabCoat::Observation] Either the control or candidate `Observation` from the given `Result`.
     def select_observation(result)
       result.control
     end
