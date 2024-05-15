@@ -67,6 +67,7 @@ See the [`Experiment`](lib/lab_coat/experiment.rb) class for more details.
 |`ignore?`|Whether or not the result should be ignored. Ignored `Results` are still passed to `#publish!`. Defaults to `false`, i.e. nothing is ignored.|
 |`publishable_value`|The data to publish for a given `Observation`. This value is only for publishing and **is not** returned by `run!`. Defaults to `Observation#value`.|
 |`raised`|Callback method that's called when an `Observation` raises.|
+|`select_observation`|Override this method to select which observation's `value` should be returned by the `Experiment`. Defaults to the control `Observation`.|
 
 > [!TIP]
 > You should create a shared base class(es) to maintain consistency across experiments within your app.
@@ -91,7 +92,7 @@ class ApplicationExperiment < LabCoat::Experiment
   def publish!(result)
     payload = result.to_h.merge(
       user_id: @user.id, # e.g. something from the `Experiment` state
-      build_number: context.version # e.g. something from the runtime context
+      build_number: context[:version] # e.g. something from the runtime context
     )
     YourO11yService.track_experiment_result(payload)
   end
@@ -119,6 +120,21 @@ class ApplicationExperiment < LabCoat::Experiment
       observation.error,
       tags: observation.to_h
     )
+  end
+end
+```
+
+You might want to rollout the new code path in certain cases.
+
+```ruby
+# application_experiment.rb
+class ApplicationExperiment < LabCoat::Experiment
+   def select_observation(result)
+    if result.matched? || YourFeatureFlagService.flag_enabled?(@user.id, @context[:rollout_flag_name])
+      candidate
+    else
+      super
+    end
   end
 end
 ```

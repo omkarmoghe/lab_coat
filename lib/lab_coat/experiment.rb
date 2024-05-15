@@ -57,26 +57,25 @@ module LabCoat
       observation.value
     end
 
-    # Override this method to select which observation's `value` should be returned by the `Experiment`. Defaults to
-    # the control `Observation`. This method is only called if the `Experiment` is enabled. This is useful for rolling
-    # out new behavior in a controlled way.
-    # @param control [LabCoat::Observation] The control `Observation`.
-    # @param candidate [LabCoat::Observation] The candidate `Observation`.
-    # @return [TrueClass, FalseClass]
-    def select_observation(control, _candidate)
-      control
-    end
-
     # Override this method to publish the `Result`. It's recommended to override this once in an application wide base
     # class.
     # @param result [LabCoat::Result] The result of this experiment.
     # @return [void]
     def publish!(result); end
 
+    # Override this method to select which observation's `value` should be returned by the `Experiment`. Defaults to
+    # the control `Observation`. This method is only called if the `Experiment` is enabled. This is useful for rolling
+    # out new behavior in a controlled way.
+    # @param result [LabCoat::Result] The result of the experiment.
+    # @return [TrueClass, FalseClass]
+    def select_observation(result)
+      result.control
+    end
+
     # Runs the control and candidate and publishes the result. Always returns the result of `control`.
     # @param context [Hash] Any data needed at runtime.
     # @return [Object] An `Observation` value.
-    def run!(**context)
+    def run!(**context) # rubocop:disable Metrics/MethodLength
       # Set the context for this run.
       @context = context
 
@@ -93,11 +92,11 @@ module LabCoat
       result = Result.new(self, control_obs, candidate_obs)
       publish!(result)
 
-      # Reset the context for this run.
-      @context = {}
-
       # Always return the control.
-      select_observation(control_obs, candidate_obs).value
+      select_observation(result).value.tap do
+        # Reset the context for this run. Done here so that `select_observation` has access to the runtime context.
+        @context = {}
+      end
     end
   end
 end
