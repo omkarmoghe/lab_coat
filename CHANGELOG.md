@@ -1,4 +1,7 @@
-## [0.1.4] - Unreleased
+## [0.1.5] - Unreleased
+- Adds `select_observation` to allow users to control which observation value is returned by the experiment. This helps with controlled rollout.
+
+## [0.1.4] - 2024-04-19
 - Remove the arity check, it's not very intuitive
 - Adds a `@context` that gets set at runtime and reset after each run. This is a much simpler way for methods to access a shared runtime context that can be set per `run!`.
 

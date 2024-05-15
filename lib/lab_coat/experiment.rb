@@ -38,12 +38,16 @@ module LabCoat
     end
 
     # Override this method to define which results are ignored. Must return a boolean.
+    # @param control [LabCoat::Observation] The control `Observation`.
+    # @param candidate [LabCoat::Observation] The candidate `Observation`.
+    # @return [TrueClass, FalseClass]
     def ignore?(_control, _candidate)
       false
     end
 
     # Called when the control and/or candidate observations raise an error.
     # @param observation [LabCoat::Observation]
+    # @return [void]
     def raised(observation); end
 
     # Override this method to transform the value for publishing. This could mean turning the value into something
@@ -53,13 +57,25 @@ module LabCoat
       observation.value
     end
 
+    # Override this method to select which observation's `value` should be returned by the `Experiment`. Defaults to
+    # the control `Observation`. This method is only called if the `Experiment` is enabled. This is useful for rolling
+    # out new behavior in a controlled way.
+    # @param control [LabCoat::Observation] The control `Observation`.
+    # @param candidate [LabCoat::Observation] The candidate `Observation`.
+    # @return [TrueClass, FalseClass]
+    def select_observation(control, _candidate)
+      control
+    end
+
     # Override this method to publish the `Result`. It's recommended to override this once in an application wide base
     # class.
     # @param result [LabCoat::Result] The result of this experiment.
+    # @return [void]
     def publish!(result); end
 
     # Runs the control and candidate and publishes the result. Always returns the result of `control`.
     # @param context [Hash] Any data needed at runtime.
+    # @return [Object] An `Observation` value.
     def run!(**context)
       # Set the context for this run.
       @context = context
@@ -81,7 +97,7 @@ module LabCoat
       @context = {}
 
       # Always return the control.
-      control_obs.value
+      select_observation(control_obs, candidate_obs).value
     end
   end
 end
