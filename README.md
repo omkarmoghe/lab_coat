@@ -9,7 +9,7 @@ This library is heavily inspired by [Scientist](https://github.com/github/scient
 - There is no app wide default experiment that gets magically set.
 - The `Result` only supports one comparison at a time, i.e. only 1 `candidate` is allowed per run.
 - The `duration` is measured using Ruby's `Benchmark`.
-- The returned `Observation` can be selected dynamically.
+- The final return value of the `Experiment` run can be selected dynamically.
 
 ## Installation
 
