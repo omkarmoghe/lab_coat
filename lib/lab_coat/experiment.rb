@@ -73,6 +73,7 @@ module LabCoat
     end
 
     # Runs the control and candidate and publishes the result. Always returns the result of `control`.
+    # It's not recommended to override this method.
     # @param context [Hash] Any data needed at runtime.
     # @return [Object] An `Observation` value.
     def run!(**context) # rubocop:disable Metrics/MethodLength

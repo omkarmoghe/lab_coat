@@ -8,7 +8,7 @@ class TestExperiment < Minitest::Test
     attr_reader :raised_observations, :publish_io
 
     def enabled?
-      context[:num].even?
+      context[:num]&.even?
     end
 
     def control
@@ -41,6 +41,10 @@ class TestExperiment < Minitest::Test
 
     def publish!(result)
       @publish_io = StringIO.new(JSON.generate(result.to_h))
+    end
+
+    def select_observation(result)
+      context[:rollout] ? result.candidate : result.control
     end
   end
 
@@ -97,6 +101,25 @@ class TestExperiment < Minitest::Test
   def test_publish!
     @experiment.run!(num: 2)
     assert_match(/"experiment":"test-experiment"/, @experiment.publish_io.read)
+  end
+
+  def test_select_observation # rubocop:disable Metrics/MethodLength
+    # Returns control even if rollout is true if not enabled.
+    assert_equal(
+      { result: "abc", status: :ok },
+      @experiment.run!(rollout: true)
+    )
+
+    # Returns control if rollout is false, even if enabled.
+    assert_equal(
+      { result: "abc", status: :ok },
+      @experiment.run!(rollout: false, num: 2)
+    )
+
+    # Returns candidate when rollout is true and is enabled.
+    assert_nil(
+      @experiment.run!(rollout: true, num: 2)
+    )
   end
 
   def test_run!
