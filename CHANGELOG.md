@@ -1,4 +1,4 @@
-## [0.1.5] - Unreleased
+## [0.1.5] - 2024-05-20
 - Adds `select_observation` to allow users to control which observation value is returned by the experiment. This helps with controlled rollout.
 
 ## [0.1.4] - 2024-04-19
