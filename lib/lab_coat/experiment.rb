@@ -3,6 +3,8 @@
 module LabCoat
   # A base experiment class meant to be subclassed to define various experiments.
   class Experiment
+    OBSERVATIONS = %w[control candidate].freeze
+
     attr_reader :name, :context
 
     def initialize(name)
@@ -80,14 +82,19 @@ module LabCoat
       # Set the context for this run.
       @context = context
 
-      # Run the control and exit early if the experiment is not enabled.
-      control_obs = Observation.new("control", self) { control }
-      raised(control_obs) if control_obs.raised?
-      return control_obs.value unless enabled?
+      # Run the control and exit early if the experiment is not enabled.\
+      unless enabled?
+        control_obs = Observation.new("control", self) { control }
+        raised(control_obs) if control_obs.raised?
+        return control_obs.value
+      end
 
-      # Run the candidate.
-      candidate_obs = Observation.new("candidate", self) { candidate }
-      raised(candidate_obs) if candidate_obs.raised?
+      # Otherwise run the control and candidate in random order.
+      observations = OBSERVATIONS.shuffle.map do |name|
+        Observation.new(name, self) { public_send(name) }.tap do |observation|
+          raised(observation) if observation.raised?
+        end
+      end
 
       # Compare and publish the results.
       result = Result.new(self, control_obs, candidate_obs)
