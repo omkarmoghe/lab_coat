@@ -82,7 +82,7 @@ module LabCoat
       # Set the context for this run.
       @context = context
 
-      # Run the control and exit early if the experiment is not enabled.\
+      # Run the control and exit early if the experiment is not enabled.
       unless enabled?
         control_obs = Observation.new("control", self) { control }
         raised(control_obs) if control_obs.raised?
@@ -97,10 +97,14 @@ module LabCoat
       end
 
       # Compare and publish the results.
-      result = Result.new(self, control_obs, candidate_obs)
+      result = if observations.first.name == "control"
+                 Result.new(self, observations.first, observations.last)
+               else
+                 Result.new(self, observations.last, observations.first)
+               end
       publish!(result)
 
-      # Always return the control.
+      # Return the selected observations, control by default.
       select_observation(result).value.tap do
         # Reset the context for this run. Done here so that `select_observation` has access to the runtime context.
         @context = {}
