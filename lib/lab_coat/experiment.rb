@@ -78,7 +78,7 @@ module LabCoat
     # It's not recommended to override this method.
     # @param context [Hash] Any data needed at runtime.
     # @return [Object] An `Observation` value.
-    def run!(**context) # rubocop:disable Metrics/MethodLength
+    def run!(**context) # rubocop:disable Metrics/MethodLength, Metrics/AbcSize
       # Set the context for this run.
       @context = context
 
