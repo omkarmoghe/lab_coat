@@ -3,6 +3,8 @@
 module LabCoat
   # A base experiment class meant to be subclassed to define various experiments.
   class Experiment
+    OBSERVATIONS = %w[control candidate].freeze
+
     attr_reader :name, :context
 
     def initialize(name)
@@ -76,24 +78,33 @@ module LabCoat
     # It's not recommended to override this method.
     # @param context [Hash] Any data needed at runtime.
     # @return [Object] An `Observation` value.
-    def run!(**context) # rubocop:disable Metrics/MethodLength
+    def run!(**context) # rubocop:disable Metrics/MethodLength, Metrics/AbcSize
       # Set the context for this run.
       @context = context
 
       # Run the control and exit early if the experiment is not enabled.
-      control_obs = Observation.new("control", self) { control }
-      raised(control_obs) if control_obs.raised?
-      return control_obs.value unless enabled?
+      unless enabled?
+        control_obs = Observation.new("control", self) { control }
+        raised(control_obs) if control_obs.raised?
+        return control_obs.value
+      end
 
-      # Run the candidate.
-      candidate_obs = Observation.new("candidate", self) { candidate }
-      raised(candidate_obs) if candidate_obs.raised?
+      # Otherwise run the control and candidate in random order.
+      observations = OBSERVATIONS.shuffle.map do |name|
+        Observation.new(name, self) { public_send(name) }.tap do |observation|
+          raised(observation) if observation.raised?
+        end
+      end
 
       # Compare and publish the results.
-      result = Result.new(self, control_obs, candidate_obs)
+      result = if observations.first.name == "control"
+                 Result.new(self, observations.first, observations.last)
+               else
+                 Result.new(self, observations.last, observations.first)
+               end
       publish!(result)
 
-      # Always return the control.
+      # Return the selected observations, control by default.
       select_observation(result).value.tap do
         # Reset the context for this run. Done here so that `select_observation` has access to the runtime context.
         @context = {}

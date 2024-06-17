@@ -1,3 +1,6 @@
+## [0.1.6] - Unreleased
+- [#1](https://github.com/omkarmoghe/lab_coat/issues/1)
+
 ## [0.1.5] - 2024-05-20
 - Adds `select_observation` to allow users to control which observation value is returned by the experiment. This helps with controlled rollout.
 
