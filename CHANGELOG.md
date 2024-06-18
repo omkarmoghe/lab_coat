@@ -1,4 +1,6 @@
-## [0.1.6] - Unreleased
+## [0.1.7] - Unreleased
+
+## [0.1.6] - 2024-06-17
 - [#1](https://github.com/omkarmoghe/lab_coat/issues/1)
 
 ## [0.1.5] - 2024-05-20
