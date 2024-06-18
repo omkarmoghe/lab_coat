@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    lab_coat (0.1.5)
+    lab_coat (0.1.6)
 
 GEM
   remote: https://rubygems.org/
