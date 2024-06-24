@@ -122,14 +122,33 @@ class TestExperiment < Minitest::Test
     )
   end
 
-  def test_run!
+  def test_run! # rubocop:disable Metrics/MethodLength
     assert_equal(
       { result: "abc", status: :ok },
       @experiment.run!(num: 1)
     )
+
     assert_equal(
       { result: "abc", status: :ok },
       @experiment.run!(num: 2)
+    )
+
+    assert_equal(
+      {},
+      @experiment.context
+    )
+  end
+
+  # Context should be reset if the experiment is disabled and short circuits.
+  def test_short_circuit_run!
+    assert_equal(
+      { result: "abc", status: :ok },
+      @experiment.run!(num: 1)
+    )
+
+    assert_equal(
+      {},
+      @experiment.context
     )
   end
 end

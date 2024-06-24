@@ -105,10 +105,10 @@ module LabCoat
       publish!(result)
 
       # Return the selected observations, control by default.
-      select_observation(result).value.tap do
-        # Reset the context for this run. Done here so that `select_observation` has access to the runtime context.
-        @context = {}
-      end
+      select_observation(result).value
+    ensure
+      # Reset the runtime context before exiting, in all scenarios.
+      @context = {}
     end
   end
 end
