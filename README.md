@@ -30,6 +30,10 @@ To do some science, i.e. test out a new code path, start by defining an `Experim
 ```ruby
 # your_experiment.rb
 class YourExperiment < LabCoat::Experiment
+  def initialize
+    super("expensive_query_experiment")
+  end
+
   def control
     expensive_query.first
   end
